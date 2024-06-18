@@ -9,4 +9,4 @@ app.config['SECRET_KEY'] = '8d128903f0d3bcec0f4866d4444951f02b1f22c891dafe2f'
 database = SQLAlchemy(app)
 
 
-from src import routes
+from certificado.src import routes
