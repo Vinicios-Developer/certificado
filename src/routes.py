@@ -31,8 +31,8 @@ def home():
                     paragraph.text = paragraph.text.replace('NOME', user.username)
                     for run in paragraph.runs:
                         run.font.name = 'Arial'
-                        run.font.bold = True
-                        run.font.size = Pt(20)
+                        run.font.bold = False
+                        run.font.size = Pt(18)
 
             temp_dir = os.path.join(os.path.dirname(__file__), '..', 'temp_files')
             if not os.path.exists(temp_dir):
