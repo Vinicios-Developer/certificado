@@ -1,53 +1,70 @@
+from flask import send_file
+from flask import request
+from flask import Flask, render_template
+from io import BytesIO
 from docx import Document
-from docx.shared import Pt
-from flask import render_template, request, send_file
-from src import app
-from src.forms import FormNome
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+
 from src.models import Nome
-from docx2pdf import convert
-import os
-import time
+
+app = Flask(__name__)
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
-    form = FormNome()
     if request.method == 'POST':
         nome = request.form.get('nome')
         nome_padronizado = nome.upper()
 
         user = Nome.query.filter_by(username=nome_padronizado).first()
         if user:
-            template_path = os.path.join(os.path.dirname(__file__), '..', 'CERTIFICADO_WORK.docx')
-
+            template_path = 'CERTIFICADO_WORK.docx'
             doc = Document(template_path)
 
             for paragraph in doc.paragraphs:
                 if 'NOME' in paragraph.text:
                     paragraph.text = paragraph.text.replace('NOME', user.username)
-                    # Exemplo de formatação sem o pythoncom
-                    for run in paragraph.runs:
-                        run.font.size = Pt(18)
 
-            temp_dir = os.path.join(os.path.dirname(__file__), '..', 'temp_files')
-            if not os.path.exists(temp_dir):
-                os.makedirs(temp_dir)
+            pdf_path = f'temp_files/certificate_{user.username}.pdf'
+            doc.save('temp_files/temp.docx')
 
-            temp_doc_path = os.path.join(temp_dir, 'certificate_{}.docx'.format(user.username))
-            temp_pdf_path = os.path.join(temp_dir, 'certificate_{}.pdf'.format(user.username))
-            doc.save(temp_doc_path)
+            docx_file = 'temp_files/temp.docx'
+            pdf_file = pdf_path
 
-            convert(temp_doc_path, temp_pdf_path)
+            # Converting DOCX to PDF
+            convert_docx_to_pdf(docx_file, pdf_file)
 
-            time.sleep(4)
+            return send_file(pdf_file, as_attachment=True)
 
-            if os.path.exists(temp_pdf_path):
-                try:
-                    return send_file(temp_pdf_path, as_attachment=True)
-                except Exception as e:
-                    return str(e), 500
-            else:
-                return "Arquivo PDF não encontrado", 404
-        else:
-            return "User not found", 404
+    return render_template('index.html')
 
-    return render_template('index.html', form=form)
+def convert_docx_to_pdf(input_docx, output_pdf):
+    from reportlab.lib.pagesizes import letter
+    from reportlab.platypus import SimpleDocTemplate
+    from reportlab.lib.styles import getSampleStyleSheet
+    from reportlab.lib.units import inch
+    from docx import Document as DocxDocument
+    from io import BytesIO
+
+    # Read the DOCX file
+    doc = DocxDocument(input_docx)
+
+    # Create a buffer for the PDF
+    buffer = BytesIO()
+
+    # Create a PDF document
+    pdf = SimpleDocTemplate(buffer, pagesize=letter)
+    styles = getSampleStyleSheet()
+
+    # Process each paragraph in the DOCX file
+    for para in doc.paragraphs:
+        text = para.text.strip()
+        pdf_content = f'<para>{text}</para>'
+        pdf.build([pdf_content], styles['Normal'])
+
+    # Write the PDF document to the output file
+    with open(output_pdf, 'wb') as f:
+        f.write(buffer.getvalue())
+
+if __name__ == '__main__':
+    app.run()
