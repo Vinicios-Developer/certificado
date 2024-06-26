@@ -17,6 +17,7 @@ def home():
 
         user = Nome.query.filter_by(username=nome_padronizado).first()
         if user:
+            # Aqui ocorre a geração do documento DOCX e sua conversão para PDF
             template_path = 'CERTIFICADO_WORK.docx'
             doc = Document(template_path)
 
