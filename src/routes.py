@@ -1,17 +1,16 @@
-from flask import send_file
-from flask import request
-from flask import Flask, render_template
-from io import BytesIO
 from docx import Document
+from flask import render_template, request, send_file
+from src import app
+from src.forms import FormNome
+from src.models import Nome
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
-
-from src.models import Nome
-
-app = Flask(__name__)
+import os
+import time
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
+    form = FormNome()
     if request.method == 'POST':
         nome = request.form.get('nome')
         nome_padronizado = nome.upper()
@@ -36,11 +35,22 @@ def home():
 
             return send_file(pdf_file, as_attachment=True)
 
-    return render_template('index.html')
+            time.sleep(4)
+
+            if os.path.exists(temp_pdf_path):
+                try:
+                    return send_file(temp_pdf_path, as_attachment=True)
+                except Exception as e:
+                    return str(e), 500
+            else:
+                return "Arquivo PDF não encontrado", 404
+        else:
+            return "User not found", 404
+
+    return render_template('index.html', form=form)
+
 
 def convert_docx_to_pdf(input_docx, output_pdf):
-    from reportlab.lib.pagesizes import letter
-    from reportlab.platypus import SimpleDocTemplate
     from reportlab.lib.styles import getSampleStyleSheet
     from reportlab.lib.units import inch
     from docx import Document as DocxDocument
@@ -53,18 +63,16 @@ def convert_docx_to_pdf(input_docx, output_pdf):
     buffer = BytesIO()
 
     # Create a PDF document
-    pdf = SimpleDocTemplate(buffer, pagesize=letter)
-    styles = getSampleStyleSheet()
+    pdf = canvas.Canvas(buffer, pagesize=letter)
 
     # Process each paragraph in the DOCX file
     for para in doc.paragraphs:
         text = para.text.strip()
-        pdf_content = f'<para>{text}</para>'
-        pdf.build([pdf_content], styles['Normal'])
+        pdf.drawString(100, 750, text)  # Adjust position as needed
 
-    # Write the PDF document to the output file
+    # Save the PDF document to the output file
+    pdf.save()
+
+    # Write the buffer to the output PDF file
     with open(output_pdf, 'wb') as f:
         f.write(buffer.getvalue())
-
-if __name__ == '__main__':
-    app.run()
