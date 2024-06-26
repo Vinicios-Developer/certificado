@@ -25,7 +25,7 @@ def home():
                 if 'NOME' in paragraph.text:
                     paragraph.text = paragraph.text.replace('NOME', user.username)
 
-            pdf_path = f'temp_files/certificate_{user.username}.pdf'
+            pdf_path = f'temp_files\certificate_{user.username}.pdf'
             doc.save('temp_files/temp.docx')
 
             docx_file = 'temp_files/temp.docx'
