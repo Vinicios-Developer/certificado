@@ -1,9 +1,9 @@
 import pythoncom  # Importe a biblioteca pythoncom
 from docx.shared import Pt
 from flask import render_template, request, send_file
-from certificado.src import app
-from certificado.src.forms import FormNome
-from certificado.src.models import Nome
+from src import app
+from src.forms import FormNome
+from src.models import Nome
 from docx import Document
 from docx2pdf import convert
 import os

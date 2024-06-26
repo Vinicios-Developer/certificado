@@ -1,1 +1,1 @@
-web: gunicorn certificado.src:app
+web: gunicorn main:app

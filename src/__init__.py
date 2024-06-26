@@ -11,4 +11,4 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', '8d128903f0d3bcec0f4866d44449
 database = SQLAlchemy(app)
 
 
-from certificado.src import routes
+from src import routes
