@@ -1,27 +1,22 @@
-import pythoncom  # Importe a biblioteca pythoncom
+from docx import Document
 from docx.shared import Pt
 from flask import render_template, request, send_file
 from src import app
 from src.forms import FormNome
 from src.models import Nome
-from docx import Document
 from docx2pdf import convert
 import os
 import time
 
-
 @app.route('/', methods=['GET', 'POST'])
 def home():
-    pythoncom.CoInitialize()
     form = FormNome()
     if request.method == 'POST':
         nome = request.form.get('nome')
         nome_padronizado = nome.upper()
 
         user = Nome.query.filter_by(username=nome_padronizado).first()
-        print(user)
         if user:
-
             template_path = os.path.join(os.path.dirname(__file__), '..', 'CERTIFICADO_WORK.docx')
 
             doc = Document(template_path)
@@ -29,9 +24,8 @@ def home():
             for paragraph in doc.paragraphs:
                 if 'NOME' in paragraph.text:
                     paragraph.text = paragraph.text.replace('NOME', user.username)
+                    # Exemplo de formatação sem o pythoncom
                     for run in paragraph.runs:
-                        run.font.name = 'Arial'
-                        run.font.bold = False
                         run.font.size = Pt(18)
 
             temp_dir = os.path.join(os.path.dirname(__file__), '..', 'temp_files')
