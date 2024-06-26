@@ -33,19 +33,11 @@ def home():
             # Converting DOCX to PDF
             convert_docx_to_pdf(docx_file, pdf_file)
 
-            return send_file(pdf_file, as_attachment=True)
-
-            time.sleep(4)
-
-            if os.path.exists(temp_pdf_path):
-                try:
-                    return send_file(temp_pdf_path, as_attachment=True)
-                except Exception as e:
-                    return str(e), 500
+            # Verifying if PDF file exists before sending
+            if os.path.exists(pdf_file):
+                return send_file(pdf_file, as_attachment=True)
             else:
                 return "Arquivo PDF não encontrado", 404
-        else:
-            return "User not found", 404
 
     return render_template('index.html', form=form)
 
